@@ -25,16 +25,16 @@ class Generator(nn.Module):
             nn.Tanh()
             # state size. (nc) x 64 x 64
         )
-        self.apply(self.weights_init)
+        self.apply(self._weights_init)
 
-    def weights_init(m):
-        classname = m.__class__.__name__
-        if classname.find('Conv') != -1:
-            nn.init.trunc_normal_(m.weight.data, 0.0, 0.02)
-        elif classname.find('BatchNorm') != -1:
-            nn.init.trunc_normal_(m.weight.data, 1.0, 0.02)
+    def _weights_init(self, m):
+        if isinstance(m, (nn.ConvTranspose2d)):
+            nn.init.trunc_normal_(m.weight, 0.0, 0.02)
+        elif isinstance(m, nn.BatchNorm2d):
+            nn.init.trunc_normal_(m.weight, 1.0, 0.02)
             nn.init.constant_(m.bias.data, 0)
-        
+
+                                  
     def forward(self, input):
 
         output = self.main(input)
@@ -64,14 +64,13 @@ class Discriminator(nn.Module):
             nn.Conv2d(feature * 8, 1, 4, 1, 0, bias=False),
             nn.Sigmoid()
         )
-        self.apply(self.weights_init)
+        self.apply(self._weights_init)
 
-    def weights_init(m):
-        classname = m.__class__.__name__
-        if classname.find('Conv') != -1:
-            nn.init.trunc_normal_(m.weight.data, 0.0, 0.02)
-        elif classname.find('BatchNorm') != -1:
-            nn.init.trunc_normal_(m.weight.data, 1.0, 0.02)
+    def _weights_init(self, m):
+        if isinstance(m, (nn.Conv2d)):
+            nn.init.trunc_normal_(m.weight, 0.0, 0.02)
+        elif isinstance(m, nn.BatchNorm2d):
+            nn.init.trunc_normal_(m.weight, 1.0, 0.02)
             nn.init.constant_(m.bias.data, 0)
 
     def forward(self, input):

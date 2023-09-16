@@ -1,4 +1,5 @@
 import argparse
+import torch
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torch.utils.tensorboard import SummaryWriter
@@ -20,25 +21,32 @@ def overwrite_config(config, args):
 def get_args_parser():
     parser = argparse.ArgumentParser(
         "DCGAN for Zi Generation",
-        add_help=False
+        add_help=False,
     )
     parser.add_argument("-c", "--config", required=True, help="path to yaml config")
-    parser.add_argument("--epochs", default=None, type=int)
-    parser.add_argument("--data_path", default="../Data/DicData", type=int, help="latent size for GAN")
-    parser.add_argument("--latent_size", default=None, type=int, help="latent size for GAN")
-    parser.add_argument("--input_channel", default=None, type=int, help="input image channel number")
-    parser.add_argument("--image_size", default=None, type=int, help="input image size")
+    parser.add_argument("--epochs", type=int, help="epoch num")
+    parser.add_argument("--data_path", default="../Data/DicData", type=str, help="latent size for GAN")
+    parser.add_argument("--output_dir", default="./checkpoint", type=str, help="output dir")
+    parser.add_argument("--latent_size", type=int, help="latent size for GAN")
+    parser.add_argument("--input_channel", type=int, help="input image channel number")
+    parser.add_argument("--image_size", type=int, help="input image size")
     parser.add_argument("--beta1", default=0.5, type=float, help="beta1 in Adam")
     parser.add_argument("--beta2", default=0.999, type=float, help="beta2 in Adam")
-    parser.add_argument("--feature_maps_g", default=None, type=int, help="beta2 in Adam")
-    parser.add_argument("--feature_maps_d", default=None, type=int, help="beta2 in Adam")
+    parser.add_argument("--feature_maps_g", type=int, help="feature_maps for generator")
+    parser.add_argument("--feature_maps_d", type=int, help="feature_maps for discriminator")
     parser.add_argument("--pin_mem", default=True, type=bool, help="pin memory")
+    parser.add_argument("--log_dir", default="./log_dir", type=str, help="log directory")
+    parser.add_argument("--print_freq", type=int, help="print metrcis per N batch")
+    parser.add_argument("--gen_eval_freq", type=bool, help="save generated images per N batch")
+
     parser.add_argument(
     "--lr",
     type=float,
     default=0.0002,
     metavar="LR",
     help="learning rate")
+
+    return parser
 
 def build_dataset(args):
 
@@ -53,7 +61,7 @@ def build_dataset(args):
 
 class TensorboardLogger(object):
     def __init__(self, log_dir):
-        self.writer = SummaryWriter(logdir=log_dir)
+        self.writer = SummaryWriter(log_dir=log_dir)
         self.step = 0
 
     def set_step(self, step=None):

@@ -11,8 +11,8 @@ REAL_LABEL = 1.0
 FAKE_LABEL = 0.0
 
 
-class fixed_noise_eval_logger():
-    def __init__(self, device, latent_size, img_num=64, dir="./fixed_noise_eval", dump=True) -> None:
+class GenEvalLogger():
+    def __init__(self, device, latent_size, img_num=64, dir="./gen_eval", dump=True) -> None:
         self.fixed_noise = torch.randn(img_num, latent_size, 1, 1).to(device)
         self.img_list = []
         self.dump = dump
@@ -42,8 +42,8 @@ def train_one_epoch(
         epoch: int,
         metric_logger,
         print_freq: int,
-        fixed_noise_eval_logger,
-        noise_eval_freq: int
+        gen_eval_logger,
+        gen_eval_freq: int
 ):
     for i, data in enumerate(dataloader):
         
@@ -71,7 +71,7 @@ def train_one_epoch(
         fake_image = generator(noise)
         label.fill_(FAKE_LABEL)
         # Classify all fake batch with D
-        output = generator(fake_image.detach()).view(-1)
+        output = discriminator(fake_image.detach()).view(-1)
         # Calculate D's loss on the all-fake batch
         errD_fake = criterion(output, label)
         # Calculate the gradients for this batch, accumulated (summed) with previous gradients
@@ -110,10 +110,9 @@ def train_one_epoch(
 
         
         # Check how the generator is doing by saving G's output on fixed_noise
-        if (i % noise_eval_freq == 0) or (i == len(dataloader)-1) :
-            fixed_noise_eval_logger.evaluate(generator, epoch, num=math.floor(i // noise_eval_freq))
+        if (i % gen_eval_freq == 0) or (i == len(dataloader)-1) :
+            gen_eval_logger.evalute_on_fixed_noise(generator, epoch, num=math.floor(i // gen_eval_freq))
             
-        iters += 1
 
 
 
