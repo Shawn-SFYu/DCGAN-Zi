@@ -1,0 +1,10 @@
+epoch: 10
+data_path: ../Data/DicData
+latent_size: 512
+input_channel: 1
+image_size: 64
+batch_size: 32
+beta1: 0.5
+feature_maps_g: 64
+feature_maps_d: 64
+lr: 0.0002

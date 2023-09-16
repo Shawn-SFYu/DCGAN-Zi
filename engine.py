@@ -41,7 +41,7 @@ def train_one_epoch(
         device: torch.device,
         epoch: int,
         metric_logger,
-        update_freq: int,
+        print_freq: int,
         fixed_noise_eval_logger,
         noise_eval_freq: int
 ):
@@ -97,14 +97,17 @@ def train_one_epoch(
         g_optim.step()
         
         # Output training stats
-        if i % update_freq == 0:
-            print('[%d/%d][%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f'
-                  % (epoch, num_epochs, i, len(dataloader),
+        if i % print_freq == 0:
+            print('Epoch %d: [%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f'
+                  % (epoch, i, len(dataloader),
                      errD.item(), errG.item(), D_x, D_G_z1, D_G_z2))
         
-        # Save Losses for plotting later
-        G_losses.append(errG.item())
-        D_losses.append(errD.item())
+        if metric_logger is not None:
+            metric_logger.update(loss=errG.item(), head="G-loss")
+            metric_logger.update(loss=errD.item(), head="D-loss")
+            metric_logger.set_step()            
+
+
         
         # Check how the generator is doing by saving G's output on fixed_noise
         if (i % noise_eval_freq == 0) or (i == len(dataloader)-1) :
