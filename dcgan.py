@@ -5,7 +5,7 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         self.main = nn.Sequential(
             # input is Z, going into a convolution
-            nn.ConvTranspose2d(     n_z, feature * 8, 4, 1, 0, bias=False),
+            nn.ConvTranspose2d(n_z, feature * 8, 4, 1, 0, bias=False),
             nn.BatchNorm2d(feature * 8),
             nn.ReLU(True),
             # state size. (ngf*8) x 4 x 4
@@ -30,9 +30,9 @@ class Generator(nn.Module):
     def weights_init(m):
         classname = m.__class__.__name__
         if classname.find('Conv') != -1:
-            nn.init.normal_(m.weight.data, 0.0, 0.02)
+            nn.init.trunc_normal_(m.weight.data, 0.0, 0.02)
         elif classname.find('BatchNorm') != -1:
-            nn.init.normal_(m.weight.data, 1.0, 0.02)
+            nn.init.trunc_normal_(m.weight.data, 1.0, 0.02)
             nn.init.constant_(m.bias.data, 0)
         
     def forward(self, input):
@@ -69,12 +69,15 @@ class Discriminator(nn.Module):
     def weights_init(m):
         classname = m.__class__.__name__
         if classname.find('Conv') != -1:
-            nn.init.normal_(m.weight.data, 0.0, 0.02)
+            nn.init.trunc_normal_(m.weight.data, 0.0, 0.02)
         elif classname.find('BatchNorm') != -1:
-            nn.init.normal_(m.weight.data, 1.0, 0.02)
+            nn.init.trunc_normal_(m.weight.data, 1.0, 0.02)
             nn.init.constant_(m.bias.data, 0)
 
     def forward(self, input):
 
         output = self.main(input)
         return output.view(-1, 1).squeeze(1)
+    
+if __name__ == '__main__':
+    pass

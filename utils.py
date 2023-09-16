@@ -26,10 +26,12 @@ def get_args_parser():
     parser.add_argument("--data_path", default="../Data/DicData", type=int, help="latent size for GAN")
     parser.add_argument("--latent_size", default=None, type=int, help="latent size for GAN")
     parser.add_argument("--input_channel", default=None, type=int, help="input image channel number")
+    parser.add_argument("--image_size", default=None, type=int, help="input image size")
     parser.add_argument("--beta1", default=0.5, type=float, help="beta1 in Adam")
     parser.add_argument("--beta2", default=0.999, type=float, help="beta2 in Adam")
     parser.add_argument("--feature_maps_g", default=None, type=int, help="beta2 in Adam")
     parser.add_argument("--feature_maps_d", default=None, type=int, help="beta2 in Adam")
+    parser.add_argument("--pin_mem", default=True, type=bool, help="pin memory")
     parser.add_argument(
     "--lr",
     type=float,
@@ -40,10 +42,10 @@ def get_args_parser():
 def build_dataset(args):
 
     transform = transforms.Compose([
+        transforms.Grayscale(),
         transforms.Resize(args.image_size),
         transforms.ToTensor(),
     ])
-
     dataset = datasets.ImageFolder(root=args.data_path, transform=transform)
 
     return dataset

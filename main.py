@@ -18,9 +18,7 @@ def main(args):
     data_loader_train = torch.utils.data.DataLoader(
     dataset_train,
     batch_size=args.batch_size,
-    num_workers=args.num_workers,
-    pin_memory=args.pin_mem,
-    drop_last=True,)
+    pin_memory=args.pin_mem)
 
     gen_model = Generator()
     dis_model = Discriminator()
@@ -32,7 +30,7 @@ def main(args):
 
     for epoch in range(args.epochs):
         train_one_epoch(generator=gen_model, discriminator=dis_model,
-                        g_optim=g_optim, d_optim=d_optim,
+                        latent_size=args.latent_size, g_optim=g_optim, d_optim=d_optim,
                         criterion=nn.BCELoss(), dataloader=data_loader_train, device=device, epoch=epoch)
         
 
