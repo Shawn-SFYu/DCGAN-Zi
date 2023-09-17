@@ -28,7 +28,7 @@ class Generator(nn.Module):
         self.apply(self._weights_init)
 
     def _weights_init(self, m):
-        if isinstance(m, (nn.ConvTranspose2d)):
+        if isinstance(m, nn.ConvTranspose2d):
             nn.init.trunc_normal_(m.weight, 0.0, 0.02)
         elif isinstance(m, nn.BatchNorm2d):
             nn.init.trunc_normal_(m.weight, 1.0, 0.02)
@@ -67,7 +67,7 @@ class Discriminator(nn.Module):
         self.apply(self._weights_init)
 
     def _weights_init(self, m):
-        if isinstance(m, (nn.Conv2d)):
+        if isinstance(m, nn.Conv2d):
             nn.init.trunc_normal_(m.weight, 0.0, 0.02)
         elif isinstance(m, nn.BatchNorm2d):
             nn.init.trunc_normal_(m.weight, 1.0, 0.02)
