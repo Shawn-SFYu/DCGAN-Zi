@@ -28,14 +28,18 @@ def main(args):
     g_optim = optim.Adam(gen_model.parameters(), lr=args.lr, betas=(args.beta1, args.beta2))
     d_optim = optim.Adam(dis_model.parameters(), lr=args.lr, betas=(args.beta1, args.beta2))
 
+    start_epoch = 0
+
     if args.auto_resume:
         auto_load_model(args, model_name="generator", model=gen_model, optimizer=g_optim)
-        auto_load_model(args, model_name="discriminator", model=dis_model, optimizer=d_optim)
+        start_epoch = auto_load_model(args, model_name="discriminator", model=dis_model, optimizer=d_optim) + 1
+
+    args.epochs += start_epoch
 
     gen_eval_logger = GenEvalLogger(device, args.latent_size, img_num=64, dir="./gen_eval", dump=True)
     metrics_logger = TensorboardLogger(log_dir=args.log_dir)
 
-    for epoch in range(args.epochs):
+    for epoch in range(start_epoch, args.epochs):
         train_one_epoch(generator=gen_model, discriminator=dis_model,
                         latent_size=args.latent_size, g_optim=g_optim, d_optim=d_optim,
                         criterion=nn.BCELoss(), dataloader=data_loader_train, device=device, epoch=epoch,

@@ -113,19 +113,20 @@ def save_model(
 def auto_load_model(
     args, model_name: str, model: nn.Module, optimizer: optim.Optimizer
 ):
+    import glob
     output_dir = Path(args.output_dir)
-    if args.auto_resume:
-        import glob
-        all_checkpoints = glob.glob(os.path.join(output_dir, f"checkpoint-{model_name}*.pth"))
-        latest_ckpt = -1
-        for ckpt in all_checkpoints:
-            t = ckpt.split("-")[-1].split(".")[0]
-            if t.isdigit():
-                latest_ckpt = max(int(t), latest_ckpt)
-        assert latest_ckpt >= 0, "no proper checkpoint found"
-        resume_checkpoint = os.path.join(output_dir, "checkpoint-%d.pth" % latest_ckpt)
-        print("Resume checkpoint: %s" % resume_checkpoint)
-        checkpoint = torch.load(resume_checkpoint, map_location="cpu")
-        model.load_state_dict(checkpoint["model"])
-        optimizer.load_state_dict(checkpoint["optimizer"])
+    all_checkpoints = glob.glob(os.path.join(output_dir, f"checkpoint-{model_name}*.pth"))
+    latest_ckpt = -1
+    for ckpt in all_checkpoints:
+        t = ckpt.split("-")[-1].split(".")[0]
+        if t.isdigit():
+            latest_ckpt = max(int(t), latest_ckpt)
+    assert latest_ckpt >= 0, "no proper checkpoint found"
+    resume_checkpoint = os.path.join(output_dir, f"checkpoint-{model_name}-{latest_ckpt}.pth")
+    print("Resume checkpoint: %s" % resume_checkpoint)
+    checkpoint = torch.load(resume_checkpoint, map_location="cpu")
+    model.load_state_dict(checkpoint["model"])
+    optimizer.load_state_dict(checkpoint["optimizer"])
+    return checkpoint["epoch"]
+
 
