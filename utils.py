@@ -42,7 +42,7 @@ def get_args_parser():
     parser.add_argument("--print_freq", type=int, help="print metrcis per N batch")
     parser.add_argument("--gen_eval_freq", type=bool, help="save generated images per N batch")
     parser.add_argument("--auto_resume", default=False, type=bool, help="whether load existing checkpoint")
-    parser.add_argument("--save_ckpt_freq", type=int, help="ckpt saving frequency")
+    parser.add_argument("--save_ckpt_freq", default=1, type=int, help="ckpt saving frequency")
     parser.add_argument(
     "--lr",
     type=float,
@@ -93,7 +93,7 @@ def save_model(
     args, model_name: str, epoch: int, model: nn.Module, optimizer: optim.Optimizer
 ):
     output_dir = Path(args.output_dir)
-    checkpoint_paths = [output_dir / (f"checkpoint-{model_name}-{to_del}.pth")]
+    checkpoint_paths = [output_dir / (f"checkpoint-{model_name}-{epoch}.pth")]
     for checkpoint_path in checkpoint_paths:
         to_save = {
             "model": model.state_dict(),
