@@ -1,5 +1,8 @@
 import argparse
 import torch
+from torch import nn, optim
+import os
+from pathlib import Path
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torch.utils.tensorboard import SummaryWriter
@@ -38,7 +41,8 @@ def get_args_parser():
     parser.add_argument("--log_dir", default="./log_dir", type=str, help="log directory")
     parser.add_argument("--print_freq", type=int, help="print metrcis per N batch")
     parser.add_argument("--gen_eval_freq", type=bool, help="save generated images per N batch")
-
+    parser.add_argument("--auto_resume", default=False, type=bool, help="whether load existing checkpoint")
+    parser.add_argument("--save_ckpt_freq", type=int, help="ckpt saving frequency")
     parser.add_argument(
     "--lr",
     type=float,
@@ -83,3 +87,45 @@ class TensorboardLogger(object):
 
     def flush(self):
         self.writer.flush()
+
+
+def save_model(
+    args, model_name: str, epoch: int, model: nn.Module, optimizer: optim.Optimizer
+):
+    output_dir = Path(args.output_dir)
+    checkpoint_paths = [output_dir / (f"checkpoint-{model_name}-{to_del}.pth")]
+    for checkpoint_path in checkpoint_paths:
+        to_save = {
+            "model": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "epoch": epoch,
+            "args": args,
+        }
+
+        torch.save(to_save, checkpoint_path)
+
+    to_del = epoch - args.save_ckpt_freq
+    old_ckpt = output_dir / (f"checkpoint-{model_name}-{to_del}.pth")
+    if os.path.exists(old_ckpt):
+        os.remove(old_ckpt)
+
+
+def auto_load_model(
+    args, model_name: str, model: nn.Module, optimizer: optim.Optimizer
+):
+    output_dir = Path(args.output_dir)
+    if args.auto_resume:
+        import glob
+        all_checkpoints = glob.glob(os.path.join(output_dir, f"checkpoint-{model_name}*.pth"))
+        latest_ckpt = -1
+        for ckpt in all_checkpoints:
+            t = ckpt.split("-")[-1].split(".")[0]
+            if t.isdigit():
+                latest_ckpt = max(int(t), latest_ckpt)
+        assert latest_ckpt >= 0, "no proper checkpoint found"
+        resume_checkpoint = os.path.join(output_dir, "checkpoint-%d.pth" % latest_ckpt)
+        print("Resume checkpoint: %s" % resume_checkpoint)
+        checkpoint = torch.load(resume_checkpoint, map_location="cpu")
+        model.load_state_dict(checkpoint["model"])
+        optimizer.load_state_dict(checkpoint["optimizer"])
+

@@ -6,7 +6,7 @@ import os
 
 from dcgan import Generator, Discriminator
 from utils import build_dataset, read_yaml_config, overwrite_config, \
-    get_args_parser, TensorboardLogger
+    get_args_parser, save_model, auto_load_model, TensorboardLogger
 from engine import train_one_epoch, GenEvalLogger
 
 def main(args):
@@ -28,6 +28,10 @@ def main(args):
     g_optim = optim.Adam(gen_model.parameters(), lr=args.lr, betas=(args.beta1, args.beta2))
     d_optim = optim.Adam(dis_model.parameters(), lr=args.lr, betas=(args.beta1, args.beta2))
 
+    if args.auto_resume:
+        auto_load_model(args, model_name="generator", model=gen_model, optimizer=g_optim)
+        auto_load_model(args, model_name="discriminator", model=dis_model, optimizer=d_optim)
+
     gen_eval_logger = GenEvalLogger(device, args.latent_size, img_num=64, dir="./gen_eval", dump=True)
     metrics_logger = TensorboardLogger(log_dir=args.log_dir)
 
@@ -37,6 +41,9 @@ def main(args):
                         criterion=nn.BCELoss(), dataloader=data_loader_train, device=device, epoch=epoch,
                         metric_logger=metrics_logger, print_freq=args.print_freq, 
                         gen_eval_logger=gen_eval_logger, gen_eval_freq=args.gen_eval_freq)
+        save_model(args, model_name="generator", epoch=epoch, model=gen_model, optimizer=g_optim)
+        save_model(args, model_name="discriminator", epoch=epoch, model=dis_model, optimizer=d_optim)
+        
         
 
 if __name__ == '__main__':

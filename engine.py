@@ -23,7 +23,7 @@ class GenEvalLogger():
     def evalute_on_fixed_noise(self, generator: nn.Module, epoch: int, num: int):
         with torch.no_grad():
             fake_img = generator(self.fixed_noise).detach().cpu()
-        if self.dump:
+        if not self.dump:
             self.img_list.append(vision_utils.make_grid(fake_img, padding=2, normalize=True))
         else:
             filepath = os.path.join(self.dir, f"epoch{epoch}-num{num}.png")
