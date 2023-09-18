@@ -42,7 +42,7 @@ class Generator(nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, n_z, feature, n_channel):
+    def __init__(self, feature, n_channel):
         super(Discriminator, self).__init__()
         self.main = nn.Sequential(
             # input is (nc) x 64 x 64

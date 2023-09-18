@@ -6,6 +6,7 @@ from pathlib import Path
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torch.utils.tensorboard import SummaryWriter
+from dataset_utils.stylefolder import StyleFolder
 import yaml
 
 def read_yaml_config(yaml_input):
@@ -62,6 +63,7 @@ def build_dataset(args):
     dataset = datasets.ImageFolder(root=args.data_path, transform=transform)
 
     return dataset
+
 
 class TensorboardLogger(object):
     def __init__(self, log_dir):
@@ -128,5 +130,6 @@ def auto_load_model(
     model.load_state_dict(checkpoint["model"])
     optimizer.load_state_dict(checkpoint["optimizer"])
     return checkpoint["epoch"]
+
 
 
