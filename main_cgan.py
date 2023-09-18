@@ -4,23 +4,25 @@ from torch import nn
 from torch import optim
 import os
 
-from dcgan import Generator, Discriminator
-from utils import build_dataset, read_yaml_config, overwrite_config, \
+from dcgan import Discriminator
+from cgan import Generator
+from utils import read_yaml_config, overwrite_config, \
     get_args_parser, save_model, auto_load_model, TensorboardLogger
+from dataset_utils.stylefolder import build_dataset_cgan
 from engine import train_one_epoch_cgan, GenEvalLogger
 
 def main(args):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     torch.manual_seed(args.seed)
 
-    dataset_train = build_dataset(args=args)
+    dataset_train = build_dataset_cgan(args=args)
 
     data_loader_train = torch.utils.data.DataLoader(
     dataset_train,
     batch_size=args.batch_size,
     pin_memory=args.pin_mem)
 
-    gen_model = Generator(args.latent_size, args.noise_size, args.feature_maps_g, args.input_channel)
+    gen_model = Generator(args.latent_size, args.n_noise, args.feature_maps_g, args.input_channel)
     dis_model = Discriminator(args.feature_maps_d, args.input_channel * 2)  # discriminator takes both base and styled images
     gen_model.to(device)
     dis_model.to(device)

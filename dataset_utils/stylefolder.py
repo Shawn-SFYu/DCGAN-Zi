@@ -78,7 +78,7 @@ def build_dataset_cgan(args):
 def char2img(character: str, font=None, cvt_traditional=False):
     assert len(character) == 1
     if not font:
-        font = ImageFont.truetype('FZ-Std-Kai.ttf', size=200)
+        font = ImageFont.truetype('dataset_utils/FZ-Std-Kai.ttf', size=200)
     if cvt_traditional:
         character = opencc.OpenCC.convert(character)
     image = Image.new('RGB', (224, 224), color='black')

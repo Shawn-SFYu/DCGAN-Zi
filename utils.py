@@ -44,6 +44,7 @@ def get_args_parser():
     parser.add_argument("--gen_eval_freq", type=bool, help="save generated images per N batch")
     parser.add_argument("--auto_resume", default=False, type=bool, help="whether load existing checkpoint")
     parser.add_argument("--save_ckpt_freq", default=1, type=int, help="ckpt saving frequency")
+    parser.add_argument("--n_noise", type=int, help="length of noise vector")
     parser.add_argument(
     "--lr",
     type=float,

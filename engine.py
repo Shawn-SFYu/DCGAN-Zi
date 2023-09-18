@@ -141,11 +141,12 @@ def train_one_epoch_cgan(
         discriminator.train(True)
         d_optim.zero_grad()
         # Format batch
-        real_image = data[0].to(device)   # get first image in the batch
-        b_size = real_image.size(0)
+        real_pair = torch.cat((standard, styled), dim=1).to(device)
+        # real_image = data[0].to(device)   # get first image in the batch
+        b_size = real_pair.size(0)
         label = torch.full((b_size,), REAL_LABEL, dtype=torch.float, device=device)
         # Forward pass real batch through D
-        output = discriminator(real_image).view(-1)
+        output = discriminator(real_pair).view(-1)
         # Calculate loss on all-real batch
         errD_real = bce(output, label)
         # Calculate gradients for D in backward pass
@@ -156,9 +157,10 @@ def train_one_epoch_cgan(
         # Generate batch of latent vectors
         # Generate fake image batch with G
         fake_image = generator(standard)
+        fake_pair = torch.cat((standard, fake_image), dim=1)
         label.fill_(FAKE_LABEL)
         # Classify all fake batch with D
-        output = discriminator(fake_image.detach()).view(-1)
+        output = discriminator(fake_pair.detach()).view(-1)
         # Calculate D's loss on the all-fake batch
         errD_fake = bce(output, label)
         # Calculate the gradients for this batch, accumulated (summed) with previous gradients
@@ -174,7 +176,8 @@ def train_one_epoch_cgan(
         g_optim.zero_grad()
         label.fill_(REAL_LABEL)  # fake labels are real for generator cost
         # Since we just updated D, perform another forward pass of all-fake batch through D
-        output = discriminator(fake_image).view(-1)
+
+        output = discriminator(fake_pair).view(-1)
         # Calculate G's loss based on this output
         errG = bce(output, label) + l1(fake_image, styled)
         # Calculate gradients for G
@@ -196,8 +199,8 @@ def train_one_epoch_cgan(
 
 
         # Check how the generator is doing by saving G's output on fixed_noise
-        if (i % gen_eval_freq == 0) or (i == len(dataloader)-1) :
-            gen_eval_logger.evalute_on_fixed_noise(generator, epoch, num=math.floor(i // gen_eval_freq))
+        #if (i % gen_eval_freq == 0) or (i == len(dataloader)-1) :
+        #    gen_eval_logger.evalute_on_fixed_noise(generator, epoch, num=math.floor(i // gen_eval_freq))
             
 
 
