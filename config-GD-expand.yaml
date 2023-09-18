@@ -1,0 +1,16 @@
+epochs: 10
+data_path: ../Data/DicData
+output_dir: checkpoint
+log_dir: log
+
+print_freq: 10
+gen_eval_freq: 20
+latent_size: 100
+input_channel: 1
+image_size: 64
+batch_size: 128
+beta1: 0.5
+feature_maps_g: 96
+feature_maps_d: 96
+lr: 0.0002
+seed: 0

@@ -20,7 +20,7 @@ def main(args):
     batch_size=args.batch_size,
     pin_memory=args.pin_mem)
 
-    gen_model = Generator(args.latent_size, args.n_noise, args.feature_maps_g, args.input_channel)
+    gen_model = Generator(args.latent_size, args.feature_maps_g, args.input_channel)
     dis_model = Discriminator(args.feature_maps_d, args.input_channel)
     gen_model.to(device)
     dis_model.to(device)

@@ -7,7 +7,7 @@ import os
 from dcgan import Generator, Discriminator
 from utils import build_dataset, read_yaml_config, overwrite_config, \
     get_args_parser, save_model, auto_load_model, TensorboardLogger
-from engine import train_one_epoch, GenEvalLogger
+from engine import train_one_epoch_cgan, GenEvalLogger
 
 def main(args):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -20,7 +20,7 @@ def main(args):
     batch_size=args.batch_size,
     pin_memory=args.pin_mem)
 
-    gen_model = Generator(args.latent_size, args.feature_maps_g, args.input_channel)
+    gen_model = Generator(args.latent_size, args.noise_size, args.feature_maps_g, args.input_channel)
     dis_model = Discriminator(args.feature_maps_d, args.input_channel * 2)  # discriminator takes both base and styled images
     gen_model.to(device)
     dis_model.to(device)
@@ -40,9 +40,9 @@ def main(args):
     metrics_logger = TensorboardLogger(log_dir=args.log_dir)
 
     for epoch in range(start_epoch, args.epochs):
-        train_one_epoch(generator=gen_model, discriminator=dis_model,
+        train_one_epoch_cgan(generator=gen_model, discriminator=dis_model,
                         latent_size=args.latent_size, g_optim=g_optim, d_optim=d_optim,
-                        criterion=nn.BCELoss(), dataloader=data_loader_train, device=device, epoch=epoch,
+                        dataloader=data_loader_train, device=device, epoch=epoch,
                         metric_logger=metrics_logger, print_freq=args.print_freq, 
                         gen_eval_logger=gen_eval_logger, gen_eval_freq=args.gen_eval_freq)
         save_model(args, model_name="generator", epoch=epoch, model=gen_model, optimizer=g_optim)
