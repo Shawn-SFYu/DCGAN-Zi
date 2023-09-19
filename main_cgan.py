@@ -5,7 +5,7 @@ from torch import optim
 import os
 
 from dcgan import Discriminator
-from cgan import Generator
+from cgan import AeGenerator, UnetGenerator
 from utils import read_yaml_config, overwrite_config, \
     get_args_parser, save_model, auto_load_model, \
     setup_device, TensorboardLogger
@@ -19,11 +19,11 @@ def main(args):
     dataset = build_dataset_cgan(args=args)
 
     data_loader = torch.utils.data.DataLoader(
-    dataset,
+    dataset, shuffle=True,
     batch_size=args.batch_size,
     pin_memory=args.pin_mem)
 
-    gen_model = Generator(args.latent_size, args.n_noise, args.feature_maps_g, args.input_channel)
+    gen_model = UnetGenerator(args.latent_size, args.n_noise, args.feature_maps_g, args.input_channel)
     dis_model = Discriminator(args.feature_maps_d, args.input_channel * 2)  # discriminator takes both base and styled images
     gen_model.to(device)
     dis_model.to(device)

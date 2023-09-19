@@ -43,10 +43,82 @@ class DecoderBlock(nn.Module):
             fx = self.dropout(fx)
             
         return fx
-    
-class Generator(nn.Module):
+
+
+  
+class UnetGenerator(nn.Module):
+    """Unet-like Encoder-Decoder model"""
     def __init__(self, n_z, n_noise, feature, n_channel):
-        super(Generator, self).__init__()
+        super().__init__()
+        self.n_z = n_z
+        self.n_noise = n_noise
+        self.encoder1 = nn.Conv2d(n_channel, feature, kernel_size=4, stride=2, padding=1) # size 32
+        self.encoder2 = EncoderBlock(feature, feature*2) 
+        self.encoder3 = EncoderBlock(feature*2, feature*4)
+        self.encoder4 = EncoderBlock(feature*4, feature*8) # size 4
+        self.encoder5 = EncoderBlock(feature*8, feature*8, kernel_size=2, stride=2, padding=0) # size 2
+        self.encoder6 = EncoderBlock(feature*8, feature*8, kernel_size=2, stride=1, padding=0) # 1
+        self.encoder7 = EncoderBlock(feature*8, n_z, kernel_size=1, stride=1, padding=0, norm=False)
+
+        self.decoder7 = DecoderBlock(n_z+n_noise, feature*8, kernel_size=1, stride=1, padding=0, dropout=False) # 1
+        self.decoder6 = DecoderBlock(2*feature*8, feature*8, kernel_size=2, stride=1, padding=0, dropout=False) # 2
+        self.decoder5 = DecoderBlock(2*feature*8, feature*8, kernel_size=2, stride=2, padding=0) # 4
+        self.decoder4 = DecoderBlock(2*feature*8, feature*4) # 8
+        self.decoder3 = DecoderBlock(2*feature*4, feature*2) 
+        self.decoder2 = DecoderBlock(2*feature*2, feature)
+        self.decoder1 = nn.ConvTranspose2d(2*feature, n_channel, kernel_size=4, stride=2, padding=1) # 64
+
+    def encoder(self, x):
+        enc_dict = dict()
+        e1 = self.encoder1(x)
+        enc_dict['e1'] = e1
+        e2 = self.encoder2(e1)
+        enc_dict['e2'] = e2
+        e3 = self.encoder3(e2)
+        enc_dict['e3'] = e3
+        e4 = self.encoder4(e3)
+        enc_dict['e4'] = e4
+        e5 = self.encoder5(e4)
+        enc_dict['e5'] = e5
+        e6 = self.encoder6(e5)
+        enc_dict['e6'] = e6
+        e7 = self.encoder7(e6)
+        enc_dict['e7'] = e7
+
+        return e7, enc_dict
+    
+    def decoder(self, z, enc_dict):
+        d7 = self.decoder7(z)
+        d7 = torch.cat([d7, enc_dict['e6']], dim=1)
+        d6 = self.decoder6(d7)
+        d6 = torch.cat([d6, enc_dict['e5']], dim=1)
+        d5 = self.decoder5(d6)
+        d5 = torch.cat([d5, enc_dict['e4']], dim=1)
+        d4 = self.decoder4(d5)
+        d4 = torch.cat([d4, enc_dict['e3']], dim=1)
+        d3 = self.decoder3(d4)
+        d3 = torch.cat([d3, enc_dict['e2']], dim=1)
+        d2 = nn.ReLU(True)(self.decoder2(d3))
+        d2 = torch.cat([d2, enc_dict['e1']], dim=1)
+        d1 = self.decoder1(d2)
+        return d1
+
+ 
+    def forward(self, x):
+        # encoder forward
+
+        e7, enc_dict = self.encoder(x)
+        # decoder forward + skip connections
+        noise = torch.randn(e7.shape[0], self.n_noise, 1, 1)
+        z = torch.concatenate((e7, noise), dim=1)
+        y = self.decoder(z, enc_dict)
+        
+        return nn.Tanh()(y)
+
+
+class AeGenerator(nn.Module):
+    def __init__(self, n_z, n_noise, feature, n_channel):
+        super().__init__()
         self.n_z = n_z
         self.n_noise = n_noise
         self.encoder = nn.Sequential(

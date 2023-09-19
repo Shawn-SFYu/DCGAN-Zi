@@ -117,8 +117,7 @@ def train_one_epoch_gan(
 class CGanEvalLogger():
     def __init__(self, device, n_noise, dataset, img_num=64, dir="./gen_eval", dump=True) -> None:
         self.fixed_noise = torch.randn(img_num, n_noise, 1, 1).to(device)
-        data_loader = torch.utils.data.DataLoader(dataset, batch_size=img_num)
-        torch.utils.data.DataLoader
+        data_loader = torch.utils.data.DataLoader(dataset, batch_size=img_num, shuffle=True)
         self.fixed_images = next(iter(data_loader))[0]
         self.img_list = []
         self.dump = dump
@@ -128,9 +127,9 @@ class CGanEvalLogger():
 
     def evalute_on_fixed_noise(self, generator: nn.Module, epoch: int, num: int):
         with torch.no_grad():
-            z = generator.encoder(self.fixed_images)
+            z, enc_dict = generator.encoder(self.fixed_images)
             z = torch.concatenate((z, self.fixed_noise), dim=1)
-            fake_img = generator.decoder(z)
+            fake_img = generator.decoder(z, enc_dict)
         if not self.dump:
             self.img_list.append(vision_utils.make_grid(fake_img, padding=2, normalize=True))
         else:
@@ -181,7 +180,7 @@ def train_one_epoch_cgan(
         # Generate batch of latent vectors
         # Generate fake image batch with G
         fake_image = generator(standard)
-        vision_utils.save_image(fake_image, fp='test.png', padding=2, normalize=True)
+        # vision_utils.save_image(fake_image, fp='test.png', padding=2, normalize=True) for test only
         fake_pair = torch.cat((standard, fake_image), dim=1)
         label.fill_(FAKE_LABEL)
         # Classify all fake batch with D
