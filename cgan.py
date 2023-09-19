@@ -1,6 +1,49 @@
 import torch
 from torch import nn
 
+
+class EncoderBlock(nn.Module):
+    """Encoder block"""
+    def __init__(self, in_channel, out_channel, kernel_size=4, stride=2, padding=1, norm=True):
+        super().__init__()
+        self.act = nn.LeakyReLU(0.2, inplace=True)
+        self.conv = nn.Conv2d(in_channel, out_channel, kernel_size, stride, padding)
+        
+        self.bn=None
+        if norm:
+            self.bn = nn.BatchNorm2d(out_channel)
+        
+    def forward(self, x):
+        fx = self.act(x)
+        fx = self.conv(fx)
+        
+        if self.bn is not None:
+            fx = self.bn(fx)
+        return fx
+    
+
+class DecoderBlock(nn.Module):
+    """Decoder block"""
+    def __init__(self, in_channel, out_channel, kernel_size=4, stride=2, padding=1, dropout=False):
+        super().__init__()
+        self.act = nn.ReLU(inplace=True)
+        self.deconv = nn.ConvTranspose2d(in_channel, out_channel, kernel_size, stride, padding)
+        self.bn = nn.BatchNorm2d(out_channel)       
+        
+        self.dropout=None
+        if dropout:
+            self.dropout = nn.Dropout2d(p=0.5, inplace=True)
+            
+    def forward(self, x):
+        fx = self.act(x)
+        fx = self.deconv(fx)
+        fx = self.bn(fx)
+
+        if self.dropout is not None:
+            fx = self.dropout(fx)
+            
+        return fx
+    
 class Generator(nn.Module):
     def __init__(self, n_z, n_noise, feature, n_channel):
         super(Generator, self).__init__()
@@ -19,9 +62,9 @@ class Generator(nn.Module):
             nn.Conv2d(feature*4, feature*8, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(feature*8),
             nn.ReLU(True),
-            nn.Conv2d(feature*8, n_z, kernel_size=4, stride=1, padding=0, bias=False)
-
-
+            nn.Conv2d(feature*8, n_z, kernel_size=4, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(n_z),
+            nn.Tanh()
         )
         self.decoder = nn.Sequential(
             # input is Z, going into a convolution

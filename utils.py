@@ -1,3 +1,4 @@
+import os
 import argparse
 import torch
 from torch import nn, optim
@@ -45,6 +46,7 @@ def get_args_parser():
     parser.add_argument("--auto_resume", default=False, type=bool, help="whether load existing checkpoint")
     parser.add_argument("--save_ckpt_freq", default=1, type=int, help="ckpt saving frequency")
     parser.add_argument("--n_noise", type=int, help="length of noise vector")
+    parser.add_argument("--l1_weight", type=float, help="weight of l1 term")
     parser.add_argument(
     "--lr",
     type=float,
@@ -133,4 +135,11 @@ def auto_load_model(
     return checkpoint["epoch"]
 
 
-
+def setup_device():
+    if torch.cuda.is_available():
+        device = 'cuda'
+    else:
+        device = 'cpu'
+        cpu_count = os.cpu_count()
+        torch.set_num_threads(cpu_count-2)
+    return device

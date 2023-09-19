@@ -114,10 +114,34 @@ def train_one_epoch_gan(
             gen_eval_logger.evalute_on_fixed_noise(generator, epoch, num=math.floor(i // gen_eval_freq))
             
 
+class CGanEvalLogger():
+    def __init__(self, device, n_noise, dataset, img_num=64, dir="./gen_eval", dump=True) -> None:
+        self.fixed_noise = torch.randn(img_num, n_noise, 1, 1).to(device)
+        data_loader = torch.utils.data.DataLoader(dataset, batch_size=img_num)
+        torch.utils.data.DataLoader
+        self.fixed_images = next(iter(data_loader))[0]
+        self.img_list = []
+        self.dump = dump
+        self.dir = dir
+        os.makedirs(self.dir, exist_ok=True)
+        
+
+    def evalute_on_fixed_noise(self, generator: nn.Module, epoch: int, num: int):
+        with torch.no_grad():
+            z = generator.encoder(self.fixed_images)
+            z = torch.concatenate((z, self.fixed_noise), dim=1)
+            fake_img = generator.decoder(z)
+        if not self.dump:
+            self.img_list.append(vision_utils.make_grid(fake_img, padding=2, normalize=True))
+        else:
+            filepath = os.path.join(self.dir, f"epoch{epoch}-num{num}.png")
+            vision_utils.save_image(fake_img, fp=filepath, padding=2, normalize=True)
+
+
 def train_one_epoch_cgan(
         generator: nn.Module,
         discriminator: nn.Module,
-        latent_size: int,
+        l1_weight: float,
         g_optim: torch.optim.Optimizer,
         d_optim: torch.optim.Optimizer,
         dataloader: Iterable,
@@ -157,6 +181,7 @@ def train_one_epoch_cgan(
         # Generate batch of latent vectors
         # Generate fake image batch with G
         fake_image = generator(standard)
+        vision_utils.save_image(fake_image, fp='test.png', padding=2, normalize=True)
         fake_pair = torch.cat((standard, fake_image), dim=1)
         label.fill_(FAKE_LABEL)
         # Classify all fake batch with D
@@ -179,7 +204,10 @@ def train_one_epoch_cgan(
 
         output = discriminator(fake_pair).view(-1)
         # Calculate G's loss based on this output
-        errG = bce(output, label) + l1(fake_image, styled)
+
+        l1_loss = l1_weight * l1(fake_image, styled)
+
+        errG = bce(output, label) + l1_loss
         # Calculate gradients for G
         errG.backward()
         D_G_z2 = output.mean().item()
@@ -188,9 +216,9 @@ def train_one_epoch_cgan(
         
         # Output training stats
         if i % print_freq == 0:
-            print('Epoch %d: [%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f'
+            print('Epoch %d: [%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f \t L1 %.4f'
                   % (epoch, i, len(dataloader),
-                     errD.item(), errG.item(), D_x, D_G_z1, D_G_z2))
+                     errD.item(), errG.item(), D_x, D_G_z1, D_G_z2, l1_loss))
         
         if metric_logger is not None:
             metric_logger.update(loss=errG.item(), head="G-loss")
@@ -199,8 +227,8 @@ def train_one_epoch_cgan(
 
 
         # Check how the generator is doing by saving G's output on fixed_noise
-        #if (i % gen_eval_freq == 0) or (i == len(dataloader)-1) :
-        #    gen_eval_logger.evalute_on_fixed_noise(generator, epoch, num=math.floor(i // gen_eval_freq))
+        if (i % gen_eval_freq == 0) or (i == len(dataloader)-1) :
+            gen_eval_logger.evalute_on_fixed_noise(generator, epoch, num=math.floor(i // gen_eval_freq))
             
 
 
