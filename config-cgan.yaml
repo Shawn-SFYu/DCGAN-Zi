@@ -14,5 +14,5 @@ feature_maps_g: 64
 feature_maps_d: 64
 lr: 0.0002
 seed: 0
-n_noise: 32
-l1_weight: 50
+n_noise: 16
+l1_weight: 100
