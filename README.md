@@ -11,4 +11,3 @@ As one example, this pair of images shows changes in writing styles. The first i
 The generated images ...
 
 Example training configurations are listed in yaml files.
-
