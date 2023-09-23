@@ -119,6 +119,7 @@ class CGanEvalLogger():
         self.fixed_noise = torch.randn(img_num, n_noise, 1, 1).to(device)
         data_loader = torch.utils.data.DataLoader(dataset, batch_size=img_num, shuffle=True)
         self.fixed_images = next(iter(data_loader))[0]
+        vision_utils.save_image(self.fixed_images, fp="std_wrting.png", padding=2, normalize=True)
         self.img_list = []
         self.dump = dump
         self.dir = dir
