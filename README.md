@@ -11,7 +11,7 @@ Wrting styles are gradually picked up during training. Each sub-image in the gri
 More compact neural networks are utilized here compared to other repos, [RestoreAe-Zi](https://github.com/Shawn-SFYu/RestoreAE-Zi) and [StyleVAE-Zi](https://github.com/Shawn-SFYu/StyleVAE-Zi), considering currently limited computation resources. Generators are implemented based on autoencoder and U-net structures. 
 
 As one example, this pair of images shows changes in writing styles. The first image is standard writing, 
-![stardard writing](./images/std_writing.png)
+![standard writing](./images/std_writing.png)
 and the second image shows the generation results after 30 training epochs. Writing styles show designed variation in these sub-images. 
 ![cgan training final](./images/training_final.png)
 
