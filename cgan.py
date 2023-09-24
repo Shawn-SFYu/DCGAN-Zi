@@ -67,7 +67,17 @@ class UnetGenerator(nn.Module):
         self.decoder3 = DecoderBlock(2*feature*4, feature*2) 
         self.decoder2 = DecoderBlock(2*feature*2, feature)
         self.decoder1 = nn.ConvTranspose2d(2*feature, n_channel, kernel_size=4, stride=2, padding=1) # 64
+        self.apply(self._weights_init)
 
+    def _weights_init(self, m):
+        if isinstance(m, (nn.ConvTranspose2d, nn.Conv2d)):
+            nn.init.trunc_normal_(m.weight, 0.0, 0.02)
+            nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.BatchNorm2d):
+            nn.init.trunc_normal_(m.weight, 1.0, 0.02)
+            nn.init.constant_(m.bias, 0)
+
+        
     def encoder(self, x):
         enc_dict = dict()
         e1 = self.encoder1(x)

@@ -141,5 +141,5 @@ def setup_device():
     else:
         device = 'cpu'
         cpu_count = os.cpu_count()
-        torch.set_num_threads(cpu_count-2)
+        torch.set_num_threads(cpu_count-1)
     return device
