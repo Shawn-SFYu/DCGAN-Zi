@@ -12,6 +12,7 @@ More compact neural networks are utilized here compared to other repos, [Restore
 
 As one example, this pair of images shows changes in writing styles. The first image is standard writing, 
 ![standard writing](./images/std_writing.png)
+
 and the second image shows the generation results after 30 training epochs. Writing styles show designed variation in these sub-images. 
 ![cgan training final](./images/training_final.png)
 
